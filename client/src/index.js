@@ -11,7 +11,7 @@ setEmptyState();
 
 // startLogging from statezero logs updated state paths to the console
 // as your app sets/unsets state path values (very useful for debugging)
-startLogging();
+// startLogging();
 
 ReactDOM.render(<App />, document.getElementById('root'));
 
