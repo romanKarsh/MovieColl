@@ -1,0 +1,21 @@
+.moviesList {
+  list-style-type: none;
+}
+
+li.movieList {
+  position: relative;
+  margin: 5px;
+  border-top: 1px solid blue;
+}
+
+.delete {
+  position: absolute;
+  right: 5px;
+  margin: 2px;
+}
+
+.imdb {
+  position: absolute;
+  right: 5px;
+  margin: 2px;
+}

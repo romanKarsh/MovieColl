@@ -1,0 +1,11 @@
+.rec {
+  width: 49%;
+}
+
+.del {
+  width: 49%;
+}
+
+.moviesList {
+  list-style-type: none;
+}
