@@ -13,6 +13,10 @@ class Movie extends React.Component {
         {"Bluray: " + (movie.bluray ? "Yes" : "No")}
         <button className="delete" onClick={(e) => softDelete(movie._id)}> Delete </button><br />
         {"DVD: " + (movie.dvd ? "Yes" : "No")}
+        {"number" in movie && <br/> }
+        {"number" in movie && "Number: " + movie.number}
+        {"path" in movie && <br/> }
+        {"path" in movie && "Path: " + movie.path}
       </li>
     );
   }
