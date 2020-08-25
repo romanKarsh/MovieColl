@@ -48,10 +48,10 @@ const authenticate = (req, res, next) => {
         next()
       }
     }).catch((error) => {
-      res.status(401).send("Unauthorized")
+      res.status(401).send({ message: "Unauthorized" })
     })
   } else {
-    res.status(401).send("Unauthorized")
+    res.status(401).send({ message: "Unauthorized" })
   }
 }
 
@@ -67,6 +67,10 @@ app.get("/users/check-session", (req, res) => {
 
 // A route to login and create a session
 app.post('/loginUser', (req, res) => {
+  if (!("name" in req.body) || !("password" in req.body)) {
+    res.status(400).send({ message: "request should have the user name and password" });
+    return;
+  }
   const name = req.body.name
   const password = req.body.password
   // Use the static method on the User model to find a user
@@ -82,7 +86,7 @@ app.post('/loginUser', (req, res) => {
       res.send({ currentUser: user.name });
     }
   }).catch((error) => {
-    res.status(400).send({ message: error });
+    res.status(400).send({ message: "Invalid name or password" });
   })
 })
 
@@ -99,8 +103,6 @@ app.get('/logoutUser', (req, res) => {
 })
 
 app.get('/locations', authenticate, (req, res) => {
-  // log(req.url)
-  // log(req.headers)
   Location.find().then((locs) => {
     res.status(200).send(locs);
   }, (err) => {
@@ -109,6 +111,10 @@ app.get('/locations', authenticate, (req, res) => {
 })
 
 app.post('/createLocation', authenticate, (req, res) => {
+  if (!("loc" in req.body)) {
+    res.status(400).send({ message: "request should have the locations name" });
+    return;
+  }
   const loc = new Location({
     name: req.body.loc,
     num_movies: 0
@@ -121,6 +127,10 @@ app.post('/createLocation', authenticate, (req, res) => {
 })
 
 app.delete('/deleteLocation', authenticate, (req, res) => {
+  if (!("loc" in req.body)) {
+    res.status(400).send({ message: "request should have the locations name" });
+    return;
+  }
   const locName = req.body.loc;
   Location.findOneAndDelete({ name: locName, num_movies: 0 }).then((loc) => {
     if (!loc) {
@@ -168,42 +178,45 @@ app.put("/delmovies/:id", authenticate, (req, res) => {
   let blu;
   if (!ObjectID.isValid(id)) {
     res.status(404).send({ message: "not a valid id" });
-  } else {
-    Delmovie.findOneAndDelete({ _id: id }).then((mov) => {
-      if (!mov) {
-        res.status(404).send({ message: "no such movie" });
-      } else {
-        movName = mov.name;
-        locName = mov.location;
-        blu = mov.bluray;
-        dvd = mov.dvd;
-        return Location.find({ name: mov.location });
-      }
-    }).then((locs) => {
-      if (locs.length === 0) {
-        const locat = new Location({
-          name: locName,
-          num_movies: 1
-        })
-        return locat.save();
-      } else {
-        return Location.findOneAndUpdate({ name: locs[0].name }, { $inc: { num_movies: 1 } }, { returnOriginal: false });
-      }
-    }).then((loc) => {
-      const mov = new Movie({
-        name: movName,
-        location: locName,
-        location_id: loc._id,
-        bluray: blu,
-        dvd: dvd
-      })
-      return mov.save();
-    }).then((mov) => {
-      res.status(200).send(mov);
-    }).catch((err) => {
-      res.status(500).send({ message: err });
-    })
+    return;
   }
+  Delmovie.findOneAndDelete({ _id: id }).then((mov) => {
+    if (!mov) {
+      res.status(404).send({ message: "no such movie" });
+      return Promise.reject();
+    } else {
+      movName = mov.name;
+      locName = mov.location;
+      blu = mov.bluray;
+      dvd = mov.dvd;
+      return Location.find({ name: mov.location });
+    }
+  }).then((locs) => {
+    if (locs.length === 0) {
+      const locat = new Location({
+        name: locName,
+        num_movies: 1
+      })
+      return locat.save();
+    } else {
+      return Location.findOneAndUpdate({ name: locs[0].name }, { $inc: { num_movies: 1 } }, { returnOriginal: false });
+    }
+  }).then((loc) => {
+    const mov = new Movie({
+      name: movName,
+      location: locName,
+      location_id: loc._id,
+      bluray: blu,
+      dvd: dvd
+    })
+    return mov.save();
+  }).then((mov) => {
+    res.status(200).send(mov);
+  }).catch((err) => {
+    if (!res.headersSent) {
+      res.status(500).send({ message: err });
+    }
+  })
 })
 
 app.get('/movies/:name/:loc/:blu/:dvd', authenticate, (req, res) => {
@@ -233,9 +246,14 @@ app.get('/movies/:name/:loc/:blu/:dvd', authenticate, (req, res) => {
 })
 
 app.post("/addMovie", authenticate, (req, res) => {
+  if (!('location' in req.body) || !('name' in req.body) || !('bluray' in req.body) || !('dvd' in req.body)) {
+    res.status(400).send({ message: "request body is missing fields" });
+    return;
+  }
   Location.findOneAndUpdate({ name: req.body.location }, { $inc: { num_movies: 1 } }, { returnOriginal: false }).then((loc) => {
     if (!loc) {
       res.status(400).send({ message: "make sure location exists" });
+      return Promise.reject();
     } else {
       const mov = new Movie({
         name: req.body.name,
@@ -249,7 +267,9 @@ app.post("/addMovie", authenticate, (req, res) => {
   }).then((mov) => {
     res.status(200).send(mov);
   }).catch((err) => {
-    res.status(500).send(err);
+    if (!res.headersSent) {
+      res.status(500).send(err);
+    }
   });
 })
 
@@ -257,47 +277,50 @@ app.delete("/movies/:id", authenticate, (req, res) => {
   const id = req.params.id;
   let mov;
   if (!ObjectID.isValid(id)) {
-    res.status(404).send({ message: "not a valid id" });  // if invalid id, definitely can't find resource, 404.
-  } else {
-    Movie.findOneAndDelete({ _id: id }).then((movi) => {
-      mov = movi;
-      if (!mov) {
-        res.status(404).send({ message: "no such movie" });
-      } else {
-        return Location.findOneAndUpdate({ _id: mov.location_id }, { $inc: { num_movies: -1 } });
-      }
-    }).then((loc) => {
-      let date_ob = new Date();
-      let date = ("0" + date_ob.getDate()).slice(-2);
-      let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
-      let year = date_ob.getFullYear();
-      let hours = date_ob.getHours();
-      if (hours < 10) {
-        hours = "0" + hours;
-      }
-      let minutes = date_ob.getMinutes();
-      if (minutes < 10) {
-        minutes = "0" + minutes;
-      }
-      let seconds = date_ob.getSeconds();
-      if (seconds < 10) {
-        seconds = "0" + seconds;
-      }
-      const delMov = new Delmovie({
-        name: mov.name,
-        location: mov.location,
-        location_id: mov.location_id,
-        dvd: mov.dvd,
-        bluray: mov.bluray,
-        datedel: year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds
-      })
-      return delMov.save();
-    }).then((delmovie) => {
-      res.status(200).send(delmovie);
-    }).catch((err) => {
-      res.status(500).send(err);
-    })
+    res.status(400).send({ message: "not a valid id" });  // if invalid id, definitely can't find resource, 404.
+    return;
   }
+  Movie.findOneAndDelete({ _id: id }).then((movi) => {
+    mov = movi;
+    if (!mov) {
+      res.status(404).send({ message: "no such movie" });
+      return Promise.reject();
+    } else {
+      return Location.findOneAndUpdate({ _id: mov.location_id }, { $inc: { num_movies: -1 } });
+    }
+  }).then((loc) => {
+    let date_ob = new Date();
+    let date = ("0" + date_ob.getDate()).slice(-2);
+    let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+    let year = date_ob.getFullYear();
+    let hours = date_ob.getHours();
+    if (hours < 10) {
+      hours = "0" + hours;
+    }
+    let minutes = date_ob.getMinutes();
+    if (minutes < 10) {
+      minutes = "0" + minutes;
+    }
+    let seconds = date_ob.getSeconds();
+    if (seconds < 10) {
+      seconds = "0" + seconds;
+    }
+    const delMov = new Delmovie({
+      name: mov.name,
+      location: mov.location,
+      location_id: mov.location_id,
+      dvd: mov.dvd,
+      bluray: mov.bluray,
+      datedel: year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds
+    })
+    return delMov.save();
+  }).then((delmovie) => {
+    res.status(200).send(delmovie);
+  }).catch((err) => {
+    if (!res.headersSent) {
+      res.status(500).send(err);
+    }
+  })
 })
 
 app.get('/imdb/:title', authenticate, (req, res) => {
@@ -365,3 +388,5 @@ function addToCache(movieName, movie) {
   }
   CACHE.movieList.push(movieName); // make movieName most recently used
 }
+
+module.exports = app;
