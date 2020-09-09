@@ -171,7 +171,7 @@ export const movieSearch = () => {
   const movieForm = getState("movieForm");
   const name = movieForm.name === "" ? '-' : movieForm.name;
   const loc = movieForm.location === "\"Location\"" ? "-" : movieForm.location;
-  const blu = movieForm.blu ? "Y" : "-";
+  const blu = movieForm.bluray ? "Y" : "-";
   const dvd = movieForm.dvd ? "Y" : "-";
   const url = "/movies/" + name + "/" + loc + "/" + blu + "/" + dvd;
   fetch(url).then((res) => {

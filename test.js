@@ -319,7 +319,7 @@ describe('============ Movies ===================================', () => {
           done();
         });
     });
-    it('should add movie \'troy\' to location \'cupboard\'', (done) => {
+    it('should add movie \'troy\' to location \'cupboard\', bluray: true, dvd: false', (done) => {
       agent
         .post('/addMovie')
         .send({ location: 'cupboard', name: 'troy', bluray: true, dvd: false })
@@ -335,7 +335,7 @@ describe('============ Movies ===================================', () => {
           done();
         });
     });
-    it('should add movie \'shrek\' to location \'cupboard\'', (done) => {
+    it('should add movie \'shrek\' to location \'cupboard\', bluray: true, dvd: true', (done) => {
       agent
         .post('/addMovie')
         .send({ location: 'cupboard', name: 'shrek', bluray: true, dvd: true })
@@ -350,7 +350,7 @@ describe('============ Movies ===================================', () => {
           done();
         });
     });
-    it('should add movie \'rambo\' to location \'shelf\'', (done) => {
+    it('should add movie \'rambo\' to location \'shelf\', bluray: false, dvd: true', (done) => {
       agent
         .post('/addMovie')
         .send({ location: 'shelf', name: 'rambo', bluray: false, dvd: true })
@@ -376,6 +376,33 @@ describe('============ Movies ===================================', () => {
           res.should.have.status(200);
           res.body.should.be.a('array');
           res.body.length.should.equal(3);
+          done();
+        });
+    });
+  });
+
+  describe("GET /movies/-/-/Y/-", () => {
+    it('should get 2 novies', (done) => {
+      agent
+        .get('/movies/-/-/Y/-')
+        .end((err, res) => {
+          res.should.have.status(200);
+          res.body.should.be.a('array');
+          res.body.length.should.equal(2);
+          done();
+        });
+    });
+  });
+
+  describe("GET /movies/-/-/Y/Y", () => {
+    it('should get 1 novies, named \'shelf\'', (done) => {
+      agent
+        .get('/movies/-/-/Y/Y')
+        .end((err, res) => {
+          res.should.have.status(200);
+          res.body.should.be.a('array');
+          res.body.length.should.equal(1);
+          res.body[0].name.should.equal('shrek');
           done();
         });
     });
