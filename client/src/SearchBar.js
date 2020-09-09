@@ -18,7 +18,7 @@ class SearchBar extends BaseReactComponent {
         <LocationList classNam="movieForm" locations={locationList} val={movieForm.location} /><br />
         <label className="movieForm"> <input type="checkbox" name="bluray" checked={movieForm.bluray} className="movieForm"
           onChange={e => updateCheckBox(e.target)} /> Bluray </label>
-        <label className="movieForm"> <input type="checkbox" name="dvd" checked={locationForm.dvd} className="movieForm"
+        <label className="movieForm"> <input type="checkbox" name="dvd" checked={movieForm.dvd} className="movieForm"
           onChange={e => updateCheckBox(e.target)} /> DVD </label><br />
         <button id="searchMovieBtn" onClick={movieSearch}> Search Movie</button>
         <br /><br />
