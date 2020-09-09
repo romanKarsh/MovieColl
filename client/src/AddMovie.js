@@ -23,6 +23,9 @@ class AddMovie extends BaseReactComponent {
         <div className="container row">
           <div className="jumbotron col-sm-12 pull-center">
             <form onSubmit={e => addMovie(e)}>
+              <input className="btn btn-primary" type="submit" value="Add Movie" />
+              <input className="btn btn-primary" onClick={resetAddMovieForm} value="Clear Movie Form" />
+              <Link to="/main" className="btn btn-primary"> Cancel </Link>
               <p>
                 <label> Movie Name: </label>
                 <br />
@@ -31,17 +34,14 @@ class AddMovie extends BaseReactComponent {
                 <br />
                 <label> Location: </label>
                 <br />
-                <LocationList classNam="addMovieForm" locations={locationList} val={addMovieForm.location}/>
+                <LocationList classNam="addMovieForm" locations={locationList} val={addMovieForm.location} />
                 {/*<select className="addMovieForm" id="locations"> </select> */}
                 <br />
                 <label> <input type="checkbox" checked={addMovieForm.bluray} className="addMovieForm"
-                  onChange={e => updateCheckBox(e.target)} name="bluray"/> Bluray </label>
+                  onChange={e => updateCheckBox(e.target)} name="bluray" /> Bluray </label>
                 <label> <input type="checkbox" checked={addMovieForm.dvd} className="addMovieForm"
-                  onChange={e => updateCheckBox(e.target)} name="dvd"/> DVD </label>
+                  onChange={e => updateCheckBox(e.target)} name="dvd" /> DVD </label>
                 <br /> <br />
-                <input className="btn btn-primary" type="submit" value="Add Movie" />
-                <input className="btn btn-primary" onClick={resetAddMovieForm} value="Clear Movie Form" />
-                <Link to="/main" className="btn btn-primary"> Cancel </Link>
               </p>
             </form>
           </div>
